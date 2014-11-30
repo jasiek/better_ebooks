@@ -1,20 +1,16 @@
-# Iron_ebooks
+# Iron_ebooks (non-iron.io fork)
 
 A simple and hackish ruby script for pseudorandomly posting to a _ebooks account tweets derived from a regular twitter account
 
 ## Setup
 
-1. Signup for iron.io
-2. Create a project at iron.io for doing ebooks tweets
-3. Save the iron.json file locally to this directory
-4. Signup for a Twitter account you want to use for ebooking things
-5. Sign into dev.twitter.com with the same credentials
-6. Create an application for your _ebooks account (generate the credentials)
-7. Create a file named twitter_init.rb in this directory with the OAuth credentials and the source account you want to use for seeding the markov process
-8. Run "bundle install"
-9. Upload to iron.io with `bundle exec iron_worker upload ebook`
-10. Run it with `bundle exec iron_worker queue ebook` a few times
-11. You can schedule it now to run regularly using the scheduler. I'd suggest once every 53 minutes or so.
+1. Signup for a Twitter account you want to use for ebooking things
+2. Sign into dev.twitter.com with the same credentials
+3. Create an application for your _ebooks account (generate the credentials)
+4. Create a file named twitter_init.rb in this directory with the OAuth credentials and the source account you want to use for seeding the markov process
+5. Run "bundle install"
+6. Run "bundle exec ruby ebooks.rb" to produce a tweet.
+7. You can schedule it now to run regularly using the scheduler. I'd suggest once every 53 minutes or so.
 
 ## Configuring
 
@@ -37,16 +33,3 @@ $markov_index = 2
 ```
 
 The Markov index is a measure of associativity in the generated Markov chains. I'm not going to go into the theory, but 1 is generally more incoherent and 3 is more lucid. If you want to change this, though.
-
-
-## Debugging
-
-You can force it to bypass the random running by passing up a payload to queue
-```
-iron_worker queue ebook -p '{"force": true}'
-```
-
-You can also make it run without tweeting by setting the tweet param to false
-```
-iron_worker queue ebook -p '{"force": true, "tweet": false}'
-```
