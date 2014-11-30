@@ -1,21 +1,22 @@
 # encoding: UTF-8
 
+$: << '.'
+
 require 'rubygems'
 require 'twitter'
 require 'punkt-segmenter'
 require 'twitter_init'
 require 'markov'
 require 'htmlentities'
+require 'set'
 
-source_tweets = []
+source_tweets = Set[]
 
 $rand_limit ||= 10
 $markov_index ||= 2
 
-puts "PARAMS: #{params}" if params.any?
-
-unless params.key?("tweet")
-  params["tweet"] = true
+def params
+  { 'tweet' => true }
 end
 
 rand_key = rand($rand_limit)
@@ -53,22 +54,31 @@ end
 unless rand_key == 0 || params["force"]
   puts "Not running this time (key: #{rand_key})"
 else
+  saved_tweets = Marshal.load(File.read("data/#{$source_account}.bin")) rescue Set[]
   # Fetch a thousand tweets
   begin
     user_tweets = Twitter.user_timeline($source_account, :count => 200, :trim_user => true, :include_rts => false)
     max_id = user_tweets.last.id
-    source_tweets += filtered_tweets(user_tweets)
-  
-    # Twitter only returns up to 3200 of a user timeline, includes retweets.
-    17.times do
-      user_tweets = Twitter.user_timeline($source_account, :count => 200, :trim_user => true, :max_id => max_id - 1, :include_rts => false)
-      puts "MAX_ID #{max_id} TWEETS: #{user_tweets.length}"
-      break if user_tweets.last.nil?
-      max_id = user_tweets.last.id
-      source_tweets += filtered_tweets(user_tweets)
+    saved_tweets += user_tweets
+
+    if saved_tweets.empty?
+      # Twitter only returns up to 3200 of a user timeline, includes retweets.
+      17.times do
+        user_tweets = Twitter.user_timeline($source_account, :count => 200, :trim_user => true, :max_id => max_id - 1, :include_rts => false)
+        puts "MAX_ID #{max_id} TWEETS: #{user_tweets.length}"
+        break if user_tweets.last.nil?
+        max_id = user_tweets.last.id
+        saved_tweets += user_tweets
+      end
     end
-  rescue => ex
-    puts ex.message
+
+    File.open("data/#{$source_account}.bin", "w") do |f|
+      f.write(Marshal.dump(saved_tweets))
+    end
+
+    source_tweets += filtered_tweets(saved_tweets)
+  # rescue => ex
+  #   puts ex.message
   end
   
   puts "#{source_tweets.length} tweets found"
@@ -79,7 +89,7 @@ else
   
   markov = MarkovChainer.new($markov_index)
 
-  tokenizer = Punkt::SentenceTokenizer.new(source_tweets.join(" "))  # init with corpus of all sentences
+  tokenizer = Punkt::SentenceTokenizer.new(source_tweets.to_a.join(" "))  # init with corpus of all sentences
 
   source_tweets.each do |twt|
     next if twt.nil? || twt == ''
