@@ -13,10 +13,10 @@ require 'set'
 source_tweets = Set[]
 
 $rand_limit ||= 10
-$markov_index ||= 2
+$markov_index ||= 1
 
 def params
-  { 'tweet' => true }
+  { 'tweet' => true, 'force' => true }
 end
 
 rand_key = rand($rand_limit)
@@ -73,6 +73,9 @@ else
     end
 
     File.open("data/#{$source_account}.bin", "w") do |f|
+      saved_tweets = saved_tweets.to_a.uniq do |tweet|
+        tweet.id
+      end.to_set
       f.write(Marshal.dump(saved_tweets))
     end
 
