@@ -1,4 +1,4 @@
-# Iron_ebooks (non-iron.io fork)
+# better_ebooks (non-iron.io fork)
 
 A simple and hackish ruby script for pseudorandomly posting to a _ebooks account tweets derived from a regular twitter account
 
